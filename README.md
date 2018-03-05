@@ -1,8 +1,6 @@
 # Hoze
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/hoze`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Hoze is a runtime that helps implementing asynchronous jobs on top of Google Pub/Sub cloud queue system. Write your logic, Hoze takes care of plumbing.
 
 ## Installation
 
@@ -14,15 +12,32 @@ gem 'hoze'
 
 And then execute:
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install hoze
+    $ bundle install --binstubs
 
 ## Usage
 
-TODO: Write usage instructions here
+Write a simple worker file `worker.rb`:
+
+```ruby
+Hoze.worker
+.configure do |config|
+  # You can use env variable for each property to overload hardcoded values
+  config.channel = "my.pubsub.topic" # HOZE_CONFIG_CHANNEL
+  config.key = "my.subscription.name" # HOZE_CONFIG_KEY
+  config.connector.type = "pubsub" # HOZE_CONFIG_CONNECTOR_TYPE
+  config.connector.project = "my-gcp-project" # HOZE_CONFIG_CONNECTOR_PROJECT
+  config.connector.path_to_key = "/path/to/keyfile.json" # HOZE_CONFIG_CONNECTOR_PATH_TO_KEY
+end
+.process do |message|
+  puts "Hello #{message.payload} !"
+end
+```
+
+And now run it:
+
+```shell
+bundle exec hoze worker.rb
+```
 
 ## Development
 
@@ -32,7 +47,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/hoze.
+Bug reports and pull requests are welcome on GitHub at https://github.com/pluce/hoze.
 
 ## License
 
