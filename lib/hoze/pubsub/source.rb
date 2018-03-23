@@ -1,4 +1,5 @@
 require "hoze/interface/source"
+require "hoze/interface/source_error"
 require "hoze/pubsub/message"
 
 module Hoze
@@ -24,7 +25,7 @@ module Hoze
 
 
     def listen &block
-      #puts @subscription.inspect
+      raise HozeSourceError.new("Tryng to listen source but no key configured") if @key.nil?
       subscriber = @subscription.listen do |received_message|
         begin
           msg = Hoze::PubSubMessage.new(received_message, self)
@@ -46,15 +47,22 @@ module Hoze
         subscriber.stop.wait!
       end
     end
+
+    def push payload, metadata
+      @topic.publish_async payload, metadata
+    end
     
     private
 
     def ensure_topic
-      @engine.topic(@channel)||@engine.create_topic(@channel)
+      raise HozeSourceError.new("No topic configured for source") if @channel.nil?
+      @engine.topic(@channel) || @engine.create_topic(@channel)
     end
 
     def ensure_subscription
-      @topic.subscription(@key)||@topic.subscribe(@key)
+      return nil if @key.nil?
+      subname = [@channel,@key].join('+')
+      @topic.subscription(subname) || @topic.subscribe(subname)
     end
 
   end

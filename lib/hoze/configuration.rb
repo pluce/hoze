@@ -5,8 +5,9 @@ module Hoze
   class Configuration
     attr_accessor :channel, :key, :auto_ack, :connector, :max_tries
 
-    def initialize
-      @connector = ConnectorConfiguration.new
+    def initialize prefix = nil
+      @connector = ConnectorConfiguration.new prefix
+      @prefix = prefix
     end
 
     def channel
@@ -20,13 +21,18 @@ module Hoze
     private
 
     def env_config name
-      return ENV["HOZE_CONFIG_#{name}"]
+      key = ["HOZE","CONFIG",@prefix,name].join('_')
+      return ENV[key]
     end
 
   end
 
   class ConnectorConfiguration
     attr_accessor :type, :project, :path_to_key
+
+    def initialize prefix = nil
+      @prefix = prefix
+    end
 
     def type
       env_config('TYPE') || @type
@@ -43,7 +49,8 @@ module Hoze
     private
 
     def env_config name
-      return ENV["HOZE_CONFIG_CONNECTOR_#{name}"]
+      key = ["HOZE","CONFIG","CONNECTOR",@prefix,name].join('_')
+      return ENV[key]
     end
   end
 
